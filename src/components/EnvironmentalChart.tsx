@@ -50,15 +50,15 @@ const EnvironmentalChart = ({ farmId }: EnvironmentalChartProps) => {
   const chartConfig = {
     temperature: {
       label: "Temperature (°C)",
-      color: "hsl(var(--chart-1))",
+      color: "#ef4444",
     },
     humidity: {
       label: "Humidity (%)",
-      color: "hsl(var(--chart-2))",
+      color: "#3b82f6",
     },
     target: {
       label: "Target Temp",
-      color: "hsl(var(--chart-3))",
+      color: "#10b981",
     },
   };
 
@@ -70,7 +70,7 @@ const EnvironmentalChart = ({ farmId }: EnvironmentalChartProps) => {
           <Badge variant={isConnected ? "default" : "destructive"} className="text-xs">
             {isConnected ? "Live Data" : "Disconnected"}
           </Badge>
-          <Badge variant="outline" className="text-xs font-medium">
+          <Badge variant="outline" className="text-xs font-medium bg-green-50 text-green-700 border-green-200">
             {targetFarm.ageGroup.name}: {targetFarm.ageGroup.minTemp}-{targetFarm.ageGroup.maxTemp}°C
           </Badge>
           <Badge variant="secondary" className="text-xs">
@@ -86,7 +86,7 @@ const EnvironmentalChart = ({ farmId }: EnvironmentalChartProps) => {
           <span className="text-xs text-gray-500">
             {chartData.length} data points
           </span>
-          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
             Category: {targetFarm.ageGroup.name}
           </Badge>
         </div>

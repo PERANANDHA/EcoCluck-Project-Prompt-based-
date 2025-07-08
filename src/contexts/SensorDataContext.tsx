@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface SensorReading {
@@ -17,7 +16,7 @@ interface FarmSensorData {
 
 interface SensorDataContextType {
   getFarmSensorData: (farmId: string) => FarmSensorData;
-  registerFarm: (farmId: string, targetTemp: number) => void;
+  registerFarm: (farmId: string, targetTemp: number, ageGroupName: string) => void;
   unregisterFarm: (farmId: string) => void;
 }
 
@@ -33,11 +32,22 @@ export const useSensorData = () => {
 
 interface SensorDataProviderProps {
   children: ReactNode;
+  setSensorCallbacks?: (callbacks: any) => void;
 }
 
-export const SensorDataProvider = ({ children }: SensorDataProviderProps) => {
+export const SensorDataProvider = ({ children, setSensorCallbacks }: SensorDataProviderProps) => {
   const [farmSensorData, setFarmSensorData] = useState<Record<string, FarmSensorData>>({});
   const [intervals, setIntervals] = useState<Record<string, NodeJS.Timeout>>({});
+
+  // Register sensor callbacks with FarmContext
+  useEffect(() => {
+    if (setSensorCallbacks) {
+      setSensorCallbacks({
+        registerFarm,
+        unregisterFarm
+      });
+    }
+  }, [setSensorCallbacks]);
 
   const registerFarm = (farmId: string, targetTemp: number, ageGroupName: string) => {
     console.log(`Registering isolated sensor system for farm ${farmId} (${ageGroupName}) with target ${targetTemp}°C`);

@@ -40,6 +40,8 @@ interface FarmContextType {
   setActiveFarm: (farmId: string) => void;
   updateFarm: (farmId: string, updates: Partial<Farm>) => void;
   updateFarmSystemStatus: (farmId: string, systemStatus: Partial<SystemStatus>) => void;
+  registerFarmWithSensor: (farmId: string, targetTemp: number, ageGroupName: string) => void;
+  unregisterFarmFromSensor: (farmId: string) => void;
 }
 
 interface SensorDataContextType {
@@ -78,6 +80,10 @@ const createDefaultSystemStatus = (): SystemStatus => ({
 export const FarmProvider = ({ children }: FarmProviderProps) => {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [activeFarmId, setActiveFarmId] = useState<string | null>(null);
+  const [sensorCallbacks, setSensorCallbacks] = useState<{
+    registerFarm: ((farmId: string, targetTemp: number, ageGroupName: string) => void) | null;
+    unregisterFarm: ((farmId: string) => void) | null;
+  }>({ registerFarm: null, unregisterFarm: null });
 
   // Load farms from localStorage
   useEffect(() => {
@@ -112,6 +118,20 @@ export const FarmProvider = ({ children }: FarmProviderProps) => {
     }
   }, [activeFarmId]);
 
+  const registerFarmWithSensor = (farmId: string, targetTemp: number, ageGroupName: string) => {
+    if (sensorCallbacks.registerFarm) {
+      sensorCallbacks.registerFarm(farmId, targetTemp, ageGroupName);
+      console.log(`Farm ${farmId} registered with sensor system for ${ageGroupName}`);
+    }
+  };
+
+  const unregisterFarmFromSensor = (farmId: string) => {
+    if (sensorCallbacks.unregisterFarm) {
+      sensorCallbacks.unregisterFarm(farmId);
+      console.log(`Farm ${farmId} unregistered from sensor system`);
+    }
+  };
+
   const addFarm = (farmData: Omit<Farm, 'id' | 'createdAt' | 'systemStatus'>) => {
     const newFarm: Farm = {
       ...farmData,
@@ -123,10 +143,18 @@ export const FarmProvider = ({ children }: FarmProviderProps) => {
     setFarms(prev => [...prev, newFarm]);
     setActiveFarmId(newFarm.id);
     
+    // Automatically register the new farm with sensor system
+    setTimeout(() => {
+      registerFarmWithSensor(newFarm.id, newFarm.ageGroup.targetTemp, newFarm.ageGroup.name);
+    }, 100);
+    
     console.log(`New farm added: ${newFarm.name} (${newFarm.ageGroup.name}) with completely isolated sensor system`);
   };
 
   const removeFarm = (farmId: string) => {
+    // Unregister from sensor system first
+    unregisterFarmFromSensor(farmId);
+    
     setFarms(prev => prev.filter(farm => farm.id !== farmId));
     
     if (activeFarmId === farmId) {
@@ -173,9 +201,13 @@ export const FarmProvider = ({ children }: FarmProviderProps) => {
       removeFarm,
       setActiveFarm,
       updateFarm,
-      updateFarmSystemStatus
+      updateFarmSystemStatus,
+      registerFarmWithSensor,
+      unregisterFarmFromSensor
     }}>
-      {children}
+      {React.cloneElement(children as React.ReactElement, { 
+        setSensorCallbacks 
+      })}
     </FarmContext.Provider>
   );
 };

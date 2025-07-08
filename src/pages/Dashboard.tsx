@@ -19,7 +19,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { getFarmSensorData } = useSensorData();
-  const { farms, activeFarm, updateFarmSystemStatus } = useFarm();
+  const { farms, activeFarm, updateFarmSystemStatus, registerFarmWithSensor } = useFarm();
   
   // Redirect to age selection if no farms exist
   useEffect(() => {
@@ -27,6 +27,17 @@ const Dashboard = () => {
       navigate('/');
     }
   }, [farms, navigate]);
+
+  // Register all farms with sensor system on mount
+  useEffect(() => {
+    farms.forEach(farm => {
+      const sensorData = getFarmSensorData(farm.id);
+      if (!sensorData.isConnected) {
+        console.log(`Registering farm ${farm.name} (${farm.ageGroup.name}) with sensor system`);
+        registerFarmWithSensor(farm.id, farm.ageGroup.targetTemp, farm.ageGroup.name);
+      }
+    });
+  }, [farms, getFarmSensorData, registerFarmWithSensor]);
 
   // If no active farm, show loading or redirect
   if (!activeFarm) {
